@@ -3,15 +3,27 @@ import pandas as pd
 
 st.set_page_config(page_title="Finance Architect Pro", layout="wide")
 
-# Initialize session state
+# --- ROBUST INITIALIZATION ---
+# This ensures defaults only load if the "vibe" is fresh.
+if 'income_df' not in st.session_state:
+    st.session_state.income_df = pd.DataFrame([{"Source": "Primary Job", "Amount": 2500.0, "Frequency": "Bi-Weekly"}])
+
+if 'expense_df' not in st.session_state:
+    st.session_state.expense_df = pd.DataFrame([{"Category": "Rent", "Amount": 2000.0, "Frequency": "Monthly"}])
+
+if 'asset_df' not in st.session_state:
+    st.session_state.asset_df = pd.DataFrame([{"Asset": "401k", "Value": 15000.0}])
+
+if 'savings_cont_df' not in st.session_state:
+    st.session_state.savings_cont_df = pd.DataFrame([{"Goal": "401k Contribution", "Amount": 500.0, "Tax Type": "Pre-Tax (401k/HSA)"}])
+
+if 'debt_df' not in st.session_state:
+    st.session_state.debt_df = pd.DataFrame([{"Debt": "Credit Card", "Balance": 2000.0}])
+
 if 'step' not in st.session_state:
     st.session_state.step = 1
-    # Updated: Income now includes Frequency
-    st.session_state.income_df = pd.DataFrame([{"Source": "Primary Job", "Amount": 2500.0, "Frequency": "Bi-Weekly"}])
-    st.session_state.expense_df = pd.DataFrame([{"Category": "Rent", "Amount": 2000.0, "Frequency": "Monthly"}])
-    st.session_state.asset_df = pd.DataFrame([{"Asset": "401k", "Value": 15000.0}])
-    st.session_state.savings_cont_df = pd.DataFrame([{"Goal": "401k Contribution", "Amount": 500.0, "Tax Type": "Pre-Tax (401k/HSA)"}])
-    st.session_state.debt_df = pd.DataFrame([{"Debt": "Credit Card", "Balance": 2000.0}])
+
+# --- REST OF THE SCRIPT REMAINS THE SAME ---
 
 st.title("💰 Financial Architect: Pro Edition")
 
