@@ -1,96 +1,124 @@
 import streamlit as st
 import pandas as pd
 
-st.set_page_config(page_title="Finance Architect", layout="wide")
+st.set_page_config(page_title="Finance Architect Pro", layout="wide")
 
-# Initialize session state
+# Initialize session state with new columns
 if 'step' not in st.session_state:
     st.session_state.step = 1
     st.session_state.income_df = pd.DataFrame([{"Source": "Salary", "Amount": 5000.0}])
-    st.session_state.expense_df = pd.DataFrame([{"Category": "Rent", "Amount": 2000.0}])
+    # Expenses now include Frequency
+    st.session_state.expense_df = pd.DataFrame([{"Category": "Rent", "Amount": 2000.0, "Frequency": "Monthly"}])
+    # Assets
     st.session_state.asset_df = pd.DataFrame([{"Asset": "401k", "Value": 15000.0}])
+    # New: Savings Contributions
+    st.session_state.savings_cont_df = pd.DataFrame([{"Goal": "401k Contribution", "Amount": 500.0, "Tax Type": "Pre-Tax"}])
     st.session_state.debt_df = pd.DataFrame([{"Debt": "Credit Card", "Balance": 2000.0}])
 
-st.title("💰 Personal Finance Interview")
+st.title("💰 Financial Architect: Pro Edition")
 
-# Progress Bar (Now handles 5 steps to avoid that KeyError!)
-progress_mapping = {1: 0.2, 2: 0.4, 3: 0.6, 4: 0.8, 5: 1.0}
+# Progress Bar
+progress_mapping = {1: 0.15, 2: 0.3, 3: 0.45, 4: 0.6, 5: 0.75, 6: 1.0}
 st.progress(progress_mapping.get(st.session_state.step, 1.0))
 
 # --- STEP 1: INCOME ---
 if st.session_state.step == 1:
-    st.header("Step 1: Income Sources")
-    st.write("Add your take-home pay, SSN, alimony, etc.")
+    st.header("1. Monthly Income")
     st.session_state.income_df = st.data_editor(st.session_state.income_df, num_rows="dynamic", use_container_width=True)
-    if st.button("Next: Expenses →"):
-        st.session_state.step = 2
-        st.rerun()
+    if st.button("Next →"): st.session_state.step = 2; st.rerun()
 
-# --- STEP 2: EXPENSES ---
+# --- STEP 2: PERIODIC EXPENSES ---
 elif st.session_state.step == 2:
-    st.header("Step 2: Monthly Expenses")
-    st.write("List your monthly outflows (Rent, Groceries, Utilities).")
-    st.session_state.expense_df = st.data_editor(st.session_state.expense_df, num_rows="dynamic", use_container_width=True)
+    st.header("2. Expenses (Monthly & Periodic)")
+    st.write("Enter everything from rent (monthly) to car insurance (semi-annual) or vacations (annual).")
+    
+    # Define frequency options
+    freq_options = ["Monthly", "Quarterly", "Semi-Annual", "Annual", "One-time"]
+    
+    # Configure the table to have a dropdown for frequency
+    column_config = {"Frequency": st.column_config.SelectboxColumn("Frequency", options=freq_options, required=True)}
+    
+    st.session_state.expense_df = st.data_editor(st.session_state.expense_df, column_config=column_config, num_rows="dynamic", use_container_width=True)
+    
     col1, col2 = st.columns(2)
     with col1:
         if st.button("← Back"): st.session_state.step = 1; st.rerun()
     with col2:
-        if st.button("Next: Assets →"): st.session_state.step = 3; st.rerun()
+        if st.button("Next →"): st.session_state.step = 3; st.rerun()
 
-# --- STEP 3: ASSETS ---
+# --- STEP 3: SAVINGS CONTRIBUTIONS ---
 elif st.session_state.step == 3:
-    st.header("Step 3: Assets & Wealth")
-    st.write("What do you own? (401k, Home Equity, Savings, etc.)")
-    st.session_state.asset_df = st.data_editor(st.session_state.asset_df, num_rows="dynamic", use_container_width=True)
+    st.header("3. Monthly Savings & Investments")
+    st.write("How much are you adding to your accounts each month?")
+    
+    tax_options = ["Pre-Tax (401k/HSA)", "Post-Tax (Roth/Brokerage)"]
+    column_config = {"Tax Type": st.column_config.SelectboxColumn("Tax Type", options=tax_options, required=True)}
+    
+    st.session_state.savings_cont_df = st.data_editor(st.session_state.savings_cont_df, column_config=column_config, num_rows="dynamic", use_container_width=True)
+    
     col1, col2 = st.columns(2)
     with col1:
         if st.button("← Back"): st.session_state.step = 2; st.rerun()
     with col2:
-        if st.button("Next: Debts →"): st.session_state.step = 4; st.rerun()
+        if st.button("Next →"): st.session_state.step = 4; st.rerun()
 
-# --- STEP 4: DEBTS ---
+# --- STEP 4: ASSETS (TOTAL BALANCES) ---
 elif st.session_state.step == 4:
-    st.header("Step 4: Debts & Liabilities")
-    st.write("What do you owe? (Credit Cards, Personal Loans, Mortgages).")
-    st.session_state.debt_df = st.data_editor(st.session_state.debt_df, num_rows="dynamic", use_container_width=True)
-    col1, col2 = st.columns(2)
-    with col1:
-        if st.button("← Back"): st.session_state.step = 3; st.rerun()
-    with col2:
-        if st.button("Generate Statements →"): st.session_state.step = 5; st.rerun()
+    st.header("4. Current Asset Balances")
+    st.write("Total current value of your accounts.")
+    st.session_state.asset_df = st.data_editor(st.session_state.asset_df, num_rows="dynamic", use_container_width=True)
+    if st.button("Next →"): st.session_state.step = 5; st.rerun()
 
-# --- STEP 5: FINAL STATEMENTS ---
+# --- STEP 5: DEBTS ---
 elif st.session_state.step == 5:
-    st.header("📊 Your Financial Statements")
+    st.header("5. Debts & Liabilities")
+    st.session_state.debt_df = st.data_editor(st.session_state.debt_df, num_rows="dynamic", use_container_width=True)
+    if st.button("Calculate Final Statements →"): st.session_state.step = 6; st.rerun()
+
+# --- STEP 6: FINAL STATEMENTS ---
+elif st.session_state.step == 6:
+    st.header("📊 Final Financial Statements")
     
-    # Calculate Totals
+    # --- CALCULATION ENGINE ---
+    # 1. Normalize Expenses to Monthly
+    def normalize_expense(row):
+        amt = row['Amount']
+        freq = row['Frequency']
+        if freq == "Monthly": return amt
+        if freq == "Quarterly": return amt / 3
+        if freq == "Semi-Annual": return amt / 6
+        if freq == "Annual" or freq == "One-time": return amt / 12
+        return amt
+
+    temp_exp = st.session_state.expense_df.copy()
+    temp_exp['Monthly_Equiv'] = temp_exp.apply(normalize_expense, axis=1)
+    total_mo_expense = temp_exp['Monthly_Equiv'].sum()
+    
+    # 2. Income & Savings
     total_income = st.session_state.income_df["Amount"].sum()
-    total_expense = st.session_state.expense_df["Amount"].sum()
+    post_tax_savings = st.session_state.savings_cont_df[st.session_state.savings_cont_df["Tax Type"] == "Post-Tax (Roth/Brokerage)"]["Amount"].sum()
+    
+    # 3. Balance Sheet
     total_assets = st.session_state.asset_df["Value"].sum()
     total_debts = st.session_state.debt_df["Balance"].sum()
-    
-    # Dashboard Tabs
-    tab1, tab2, tab3 = st.tabs(["Income Statement", "Balance Sheet", "Cash Flow"])
+
+    # --- DISPLAY ---
+    tab1, tab2 = st.tabs(["Income & Cash Flow", "Balance Sheet"])
     
     with tab1:
-        st.subheader("Monthly Income Statement")
-        st.write(f"**Total Income:** ${total_income:,.2f}")
-        st.write(f"**Total Expenses:** -${total_expense:,.2f}")
-        st.divider()
-        st.metric("Net Income (Profit/Loss)", f"${total_income - total_expense:,.2f}")
+        col_a, col_b = st.columns(2)
+        net_cash = total_income - total_mo_expense - post_tax_savings
+        col_a.metric("Monthly Net Cash Flow", f"${net_cash:,.2f}", help="Income - Expenses - PostTax Savings")
+        col_b.metric("Monthly Savings Rate", f"{( (total_income - net_cash) / total_income ) * 100:.1f}%")
+        
+        st.write("### Income Statement")
+        st.write(f"Total Monthly Income: **${total_income:,.2f}**")
+        st.write(f"Total Monthly Expenses (Normalized): **-${total_mo_expense:,.2f}**")
+        st.write(f"Post-Tax Savings Contributions: **-${post_tax_savings:,.2f}**")
 
     with tab2:
-        st.subheader("Personal Balance Sheet")
-        st.write(f"**Total Assets:** ${total_assets:,.2f}")
-        st.write(f"**Total Liabilities:** -${total_debts:,.2f}")
-        st.divider()
         st.metric("Net Worth", f"${total_assets - total_debts:,.2f}")
+        st.write(f"**Total Assets:** ${total_assets:,.2f}")
+        st.write(f"**Total Liabilities:** ${total_debts:,.2f}")
 
-    with tab3:
-        st.subheader("Monthly Cash Flow")
-        st.write("This shows how much 'dry powder' you have left each month.")
-        st.metric("Disposable Cash", f"${total_income - total_expense:,.2f}")
-
-    if st.button("Restart Interview"):
-        st.session_state.step = 1
-        st.rerun()
+    if st.button("Restart"): st.session_state.step = 1; st.rerun()
