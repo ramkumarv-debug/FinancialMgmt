@@ -1,37 +1,78 @@
 import streamlit as st
 import pandas as pd
 
-st.title("💰 Personal Finance Architect")
-st.subheader("Let's build your financial statements.")
+st.set_page_config(page_title="Finance Architect", layout="wide")
 
-# --- INPUT SECTION ---
-with st.expander("Step 1: Income & Assets (What you have)"):
-    income = st.number_input("Monthly Take-home Pay ($)", value=5000)
-    savings = st.number_input("Total Savings/401k ($)", value=25000)
+# Initialize the "Step" in the interview if it doesn't exist
+if 'step' not in st.session_state:
+    st.session_state.step = 1
 
-with st.expander("Step 2: Expenses & Debts (What you owe)"):
-    monthly_out = st.number_input("Monthly Expenses (Rent, Food, etc) ($)", value=3000)
-    cc_debt = st.number_input("Total Credit Card/Loan Debt ($)", value=5000)
-    annual_subs = st.number_input("Annual/Periodic Expenses (Total for year) ($)", value=1200)
+st.title("💰 Personal Finance Interview")
 
-# --- CALCULATIONS ---
-monthly_periodic = annual_subs / 12
-net_monthly_cash = income - monthly_out - monthly_periodic
-net_worth = savings - cc_debt
+# Progress Bar
+progress_mapping = {1: 0.33, 2: 0.66, 3: 1.0}
+st.progress(progress_mapping[st.session_state.step])
 
-# --- OUTPUT STATEMENTS ---
-st.divider()
-col1, col2 = st.columns(2)
+# --- STEP 1: INCOME ---
+if st.session_state.step == 1:
+    st.header("Step 1: Where does your money come from?")
+    st.write("List all sources of income (e.g., Salary, SSN, Alimony, Rental Income).")
+    
+    income_data = pd.DataFrame([{"Source": "Main Job", "Monthly Amount": 5000.0}])
+    edited_income = st.data_editor(income_data, num_rows="dynamic", use_container_width=True)
+    
+    if st.button("Next: Expenses →"):
+        st.session_state.income_total = edited_income["Monthly Amount"].sum()
+        st.session_state.step = 2
+        st.rerun()
 
-with col1:
-    st.metric("Monthly Net Cash Flow", f"${net_monthly_cash:,.2f}")
-    st.write("**Income Statement (Monthly)**")
-    st.write(f"- Revenue: ${income}")
-    st.write(f"- Fixed Expenses: -${monthly_out}")
-    st.write(f"- Sinking Funds: -${monthly_periodic}")
+# --- STEP 2: EXPENSES ---
+elif st.session_state.step == 2:
+    st.header("Step 2: Where does your money go?")
+    st.write("Create your own expense categories (e.g., Rent, Grocery, Car).")
+    
+    expense_data = pd.DataFrame([{"Category": "Housing", "Monthly Amount": 2000.0}])
+    edited_expenses = st.data_editor(expense_data, num_rows="dynamic", use_container_width=True)
+    
+    col1, col2 = st.columns(2)
+    with col1:
+        if st.button("← Back"):
+            st.session_state.step = 1
+            st.rerun()
+    with col2:
+        if st.button("Next: Savings & Investments →"):
+            st.session_state.expense_total = edited_expenses["Monthly Amount"].sum()
+            st.session_state.step = 3
+            st.rerun()
 
-with col2:
-    st.metric("Net Worth", f"${net_worth:,.2f}")
-    st.write("**Balance Sheet**")
-    st.write(f"- Assets: ${savings}")
-    st.write(f"- Liabilities: -${cc_debt}")
+# --- STEP 3: SAVINGS & ASSETS ---
+elif st.session_state.step == 3:
+    st.header("Step 3: Building Wealth")
+    st.write("Where are you putting your money for the future?")
+    
+    asset_options = ["401K", "Investment Account", "College Fund", "Home Equity", "Savings"]
+    asset_data = pd.DataFrame([{"Type": "401K", "Current Balance": 10000.0}])
+    
+    edited_assets = st.data_editor(asset_data, num_rows="dynamic", use_container_width=True)
+    
+    if st.button("Finish & View Statements"):
+        st.session_state.asset_total = edited_assets["Current Balance"].sum()
+        st.session_state.step = 4
+        st.rerun()
+
+# --- FINAL VIEW: THE STATEMENTS ---
+elif st.session_state.step == 4:
+    st.success("Interview Complete!")
+    
+    # Simple Logic for Statements
+    net_cash = st.session_state.income_total - st.session_state.expense_total
+    
+    col1, col2 = st.columns(2)
+    with col1:
+        st.metric("Net Monthly Cash Flow", f"${net_cash:,.2f}")
+    with col2:
+        st.metric("Total Tracked Assets", f"${st.session_state.asset_total:,.2f}")
+    
+    if st.button("Restart Interview"):
+        st.session_state.step = 1
+        st.rerun()
