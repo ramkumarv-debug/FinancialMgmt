@@ -59,7 +59,7 @@ elif st.session_state.step == 2:
     st.header("2. Expenses (Monthly & Periodic)")
     st.write("Include recurring bills and periodic costs (Vacations, Insurance).")
     
-    exp_freq_options = ["Monthly", "Quarterly", "Semi-Annual", "Annual", "One-time"]
+    exp_freq_options = ["Weekly", "Bi-Weekly", "Monthly", "Quarterly", "Semi-Annual", "Annual", "One-time"]
     exp_config = {"Frequency": st.column_config.SelectboxColumn("Frequency", options=exp_freq_options, required=True)}
     
     edited_exp = st.data_editor(st.session_state.expense_df, column_config=exp_config, num_rows="dynamic", use_container_width=True, key="exp_editor")
